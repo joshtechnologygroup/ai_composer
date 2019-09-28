@@ -3,6 +3,7 @@ import os
 
 from mido import MidiFile, MidiTrack, Message
 
+# from sklearn.externals import joblib
 from keras.layers import LSTM, Dense, Activation, Dropout
 from keras.preprocessing import sequence
 from keras.models import Sequential
@@ -15,6 +16,9 @@ for filename in os.listdir(folder_name):
 # midi = MidiFile('/home/ubuntu/Downloads/Super Mario Bros. 1 - Super Mario Bros - Main Theme with Left Hand Chords.mid')
 # print(midi)
 
+
+# def save_model(model, filename):
+#     joblib.dump(model, os.path.join(os.path.dirname(os.path.abspath(__file__)), filename))
 
 def preprocess():
     notes = []
@@ -75,13 +79,13 @@ def preprocess():
     model.add(Dropout(0.3))
     model.add(LSTM(512, return_sequences=True))  # return_sequences=False
     model.add(Dropout(0.3))
-    model.add(LSTM(512))
+    model.add(LSTM(256))
     model.add(Dense(256))
     model.add(Dropout(0.3))
     model.add(Dense(3, activation="softmax"))  # output=3
 
     model.compile(loss="categorical_crossentropy", optimizer="RMSprop", metrics=["accuracy"])
-    model.fit(x, y, epochs=10, batch_size=200, validation_split=0.1)
+    model.fit(x, y, epochs=1, batch_size=200, validation_split=0.1)
 
 
     seed = notes[0:n_p]
@@ -90,8 +94,9 @@ def preprocess():
     print(x)
     predict = []
     for i in range(200):
-        print(x)
         p = model.predict(x)
+        print(p)
+        # print()
         # print(p)
         x = np.squeeze(x)  # squeezed to concateneate
         x = np.concatenate((x, p))
@@ -105,6 +110,7 @@ def preprocess():
         a[0] = int(88 * a[0] + 24)
         a[1] = int(127 * a[1])
         a[2] *= max_n
+        # a[2] /= 1000
         # reject values out of range  (note[0]=24-102)(note[1]=0-127)(note[2]=0-__)
         if a[0] < 24:
             a[0] = 24
@@ -116,6 +122,8 @@ def preprocess():
             a[1] = 127
         if a[2] < 0:
             a[2] = 0
+        print(a)
+        print()
     # print(predict)
 
     # saving track from bytes data
@@ -129,7 +137,7 @@ def preprocess():
         bytes = note.astype(int)
         # print(note)
         msg = Message.from_bytes(bytes[0:3])
-        time = int(note[3] / 0.001025)  # to rescale to midi's delta ticks. arbitrary value
+        time = int(note[3]/ 5)  # to rescale to midi's delta ticks. arbitrary value
         msg.time = time
         track.append(msg)
 
