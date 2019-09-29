@@ -37,12 +37,14 @@ def preprocess():
                     # print(msg.type)
                     try:
                         if msg.channel == 0:
-                            if msg.type == 'note_on':
+                            # if msg.type == 'note_on':
+                            if msg.bytes()[2] != 0:
                                 note = msg.bytes()
                                 # [only interested in the note and velocity. note message is in the form [type, note, velocity]]
                                 note = note[1:3]
                                 note.append(time - prev)
                                 prev = time
+                                print(note)
                                 notes.append(note)
                     except:
                         pass
@@ -64,6 +66,9 @@ def preprocess():
     for i in range(len(notes) - n_p):
         current = notes[i:i + n_p]
         next = notes[i + n_p]
+        print(current)
+        print(next)
+        print()
         x.append(current)
         y.append(next)
     x = np.array(x)  # convert to numpy arrays to pass it through model
@@ -75,17 +80,17 @@ def preprocess():
 
 
     model = Sequential()
-    model.add(LSTM(512, input_shape=(20, 3), return_sequences=True))
+    model.add(LSTM(256, input_shape=(20, 3), return_sequences=True))
     model.add(Dropout(0.3))
     model.add(LSTM(512, return_sequences=True))  # return_sequences=False
     model.add(Dropout(0.3))
-    model.add(LSTM(256))
-    model.add(Dense(256))
+    model.add(LSTM(64))
+    model.add(Dense(32))
     model.add(Dropout(0.3))
     model.add(Dense(3, activation="softmax"))  # output=3
 
     model.compile(loss="categorical_crossentropy", optimizer="RMSprop", metrics=["accuracy"])
-    model.fit(x, y, epochs=1, batch_size=200, validation_split=0.1)
+    model.fit(x, y, epochs=10, batch_size=50, validation_split=0.1)
 
 
     seed = notes[0:n_p]
@@ -131,17 +136,24 @@ def preprocess():
     track = MidiTrack()
     m.tracks.append(track)
 
+    sum = 0
+
     for note in predict:
         # 147 means note_on
         note = np.insert(note, 0, 147)
         bytes = note.astype(int)
         # print(note)
         msg = Message.from_bytes(bytes[0:3])
-        time = int(note[3]/ 5)  # to rescale to midi's delta ticks. arbitrary value
+        time = int(note[3]/0.001025)  # to rescale to midi's delta ticks. arbitrary value
         msg.time = time
+
         track.append(msg)
 
-    m.save('Ai_song.mid')
+        note_off_msg = Message('note_off', note=bytes[1])
+        note_off_msg.time = 0
+        track.append(note_off_msg)
+
+    m.save('Ai_song1.mid')
 
 
 preprocess()
