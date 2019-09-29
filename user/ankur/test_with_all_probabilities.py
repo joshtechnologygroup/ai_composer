@@ -22,7 +22,7 @@ for filename in os.listdir(folder_name):
 
 # ===========================
 
-test = MidiFile('/home/ubuntu/hackathon/ai_composer/midi/super_mario.mid')
+test = MidiFile('/home/ubuntu/hackathon/ai_composer/midi/Suteki_Da_Ne_(Piano_Version).mid')
 
 # midi = MidiFile('/home/ubuntu/Downloads/Super Mario Bros. 1 - Super Mario Bros - Main Theme with Left Hand Chords.mid')
 # midi = MidiFile('Ai_song.mid')
@@ -121,12 +121,12 @@ def preprocess():
                                     # note = note[1:3]
                                     check[int(msg.time % 1000/10)+256] = 1
                                     notes.append(check)
-                                    hash[msg.note] = note
+                                    hash[msg.note] = check
                                     # note.append(time - prev)
                                     # prev = time
                                     # notes.append(note)
                                 else:
-                                    hash[msg.note].append(int(msg.time % 1000/10)+356)
+                                    hash[msg.note][(int(msg.time % 1000/10)+356)] = 1
                                     del hash[msg.note]
 
                     except:
@@ -148,6 +148,14 @@ def preprocess():
     #     note[129] = note[129] / max_n
     #     note[130] = note[130] / max_n2
 
+    # for note in notes:
+    #     count = 0
+    #     for i,x in enumerate(note):
+    #         if x == 1:
+    #             count += 1
+    #     if count != 4:
+    #         print(note, count)
+
     x = []
     y = []
     n_p = 20
@@ -165,9 +173,9 @@ def preprocess():
 
 
     model = Sequential()
-    model.add(LSTM(512, input_shape=(n_p, 456), return_sequences=True))
+    model.add(LSTM(1028, input_shape=(n_p, 456), return_sequences=True))
     model.add(Dropout(0.3))
-    model.add(LSTM(512, return_sequences=False))  # return_sequences=False
+    model.add(LSTM(1028, return_sequences=False))  # return_sequences=False
     # model.add(Dropout(0.3))
     # model.add(LSTM(256))
     # model.add(Dense(256))
@@ -192,6 +200,7 @@ def preprocess():
         # p = sample(p, 0.75)
         # print()
         # print(p)
+        print(p[0])
 
         print('--------------- calculating flags')
         note = sample(p[0][:128], 0.75)
@@ -200,7 +209,7 @@ def preprocess():
         print('-------------- calculating time1')
         time1 = sample(p[0][256:356], 0.75)
         print('-------------- calculating time2')
-        time2 = sample(p[0][356:456], 0.75)
+        time2 = sample(p[0][356:], 0.75)
         print('--------------- flags calculated')
 
         a = [0]*456
