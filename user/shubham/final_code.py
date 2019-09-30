@@ -1,14 +1,12 @@
 import numpy as np
 import os
-import random
 
 from mido import MidiFile, MidiTrack, Message
 
 # from sklearn.externals import joblib
-from keras.layers import LSTM, Dense, Activation, Dropout
+from keras.layers import LSTM, Dense, Dropout
 from keras.preprocessing import sequence
 from keras.models import Sequential
-from keras.optimizers import RMSprop,Adam,SGD,Adagrad
 from sklearn.externals import joblib
 
 folder_name = '/home/ubuntu/Downloads/new_midis'
@@ -81,7 +79,7 @@ def preprocess(folder_name):
 
     return np.array(X), np.array(Y)
 
-def train_model(epochs=10, batch_size=50):
+def train_model(epochs=1, batch_size=50):
     input_data, output_data = preprocess(folder_name)
 
     model = Sequential()
@@ -156,8 +154,6 @@ def predict(number_of_predcitions=100):
         l2 = [147, note[0], 0, note[3]]
         note1 = np.asarray(l1)
         note2 = np.asarray(l2)
-        print(note1)
-        print(note2)
         bytes1 = note1.astype(int)
         bytes2 = note2.astype(int)
 
